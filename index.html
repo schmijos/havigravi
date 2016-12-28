@@ -27,7 +27,10 @@
         x: Math.floor((Math.random() * canvasWidth) + 1),
         y: Math.floor((Math.random() * canvasHeight) + 1),
         vx: 0,
-        vy: 0
+        vy: 0,
+        ax: 0,
+        ay: 0,
+        m: 100000000
       });
     }  
 
@@ -39,9 +42,9 @@
         imageData.data[++index] = 255;  // blue
         imageData.data[++index] = 255;  // alpha
       } else {
-        imageData.data[index]   = 255;  // red
-        imageData.data[++index] = 0;  // green
-        imageData.data[++index] = 0;  // blue
+        imageData.data[index]   = 0;   // red
+        imageData.data[++index] = 0;    // green
+        imageData.data[++index] = 80;    // blue
         imageData.data[++index] = 255;  // alpha
       }
     }
@@ -52,10 +55,8 @@
       return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     }
 
-    function updateVelocity(star, universe) {
+    function updateAcceleration(star, universe) {
       var G = 6.6726 * Math.pow(10, -11);
-      var m1 =  1000000000;
-
       var fx = 0;
       var fy = 0;
 
@@ -63,15 +64,19 @@
         var r = distance(star, other_star);
         if(r < 1) { return; };
 
-        var m2 =  1000000000;
-        var F = (G * m1 * m2) / Math.pow(r, 2)
+        var F = (G * star.m * other_star.m) / Math.pow(r, 2)
 
         fx += (other_star.x - star.x) * F;
         fy += (other_star.y - star.y) * F;
       });
 
-      star.vx = (2 * fx) / m1;
-      star.vy = (2 * fy) / m1;
+      star.ax = fx / star.m;
+      star.ay = fy / star.m;
+    }
+
+    function updateVelocity(star) {
+      star.vx += star.ax;
+      star.vy += star.ay;
     }
 
     function updatePosition(star) {
@@ -80,10 +85,11 @@
     }
 
     function tick(universe) {
-      universe.forEach(function(star) { setPixel(star.x, star.y, false); });
-      universe.forEach(function(star) { updateVelocity(star, universe);  });
-      universe.forEach(function(star) { updatePosition(star);            });
-      universe.forEach(function(star) { setPixel(star.x, star.y, true);  });
+      universe.forEach(function(star) { setPixel(star.x, star.y, false);    });
+      universe.forEach(function(star) { updateAcceleration(star, universe); });
+      universe.forEach(function(star) { updateVelocity(star);               });
+      universe.forEach(function(star) { updatePosition(star);               });
+      universe.forEach(function(star) { setPixel(star.x, star.y, true);     });
       ctx.putImageData(imageData, 0, 0);
     }
 
