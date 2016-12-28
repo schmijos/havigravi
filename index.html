@@ -14,28 +14,34 @@
     var canvasWidth  = canvas.width;
     var canvasHeight = canvas.height;
     var ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.rect(0, 0, canvasWidth, canvasHeight);
+    ctx.fillStyle = "black";
+    ctx.fill();
+
+
     var imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
     var universe = [];
     for (var i = 0; i < 100; ++i) {
       universe.push({
         x: Math.floor((Math.random() * canvasWidth) + 1),
         y: Math.floor((Math.random() * canvasHeight) + 1),
-        vx: 1,
-        vy: 1
+        vx: 0,
+        vy: 0
       });
     }  
 
     function setPixel(x, y, enabled) {
-      var index = (y * canvasWidth + x) * 4;
+      var index = (Math.floor(y) * canvasWidth + Math.floor(x)) * 4;
       if(enabled) {
-        imageData.data[index]   = 0;  // red
-        imageData.data[++index] = 0;    // green
-        imageData.data[++index] = 0;    // blue
+        imageData.data[index]   = 255;  // red
+        imageData.data[++index] = 255;  // green
+        imageData.data[++index] = 255;  // blue
         imageData.data[++index] = 255;  // alpha
       } else {
-        imageData.data[index]   = 240;  // red
-        imageData.data[++index] = 240;  // green
-        imageData.data[++index] = 240;  // blue
+        imageData.data[index]   = 255;  // red
+        imageData.data[++index] = 0;  // green
+        imageData.data[++index] = 0;  // blue
         imageData.data[++index] = 255;  // alpha
       }
     }
@@ -47,11 +53,25 @@
     }
 
     function updateVelocity(star, universe) {
-      //console.log((Math.random() - 0.5) * 2);
-      star.vx = (Math.random() - 0.5) * 2;
-      star.vy = (Math.random() - 0.5) * 2;
-      star.vx *= 50;
-      star.vy *= 50;
+      var G = 6.6726 * Math.pow(10, -11);
+      var m1 =  1000000000;
+
+      var fx = 0;
+      var fy = 0;
+
+      universe.forEach(function(other_star) {
+        var r = distance(star, other_star);
+        if(r < 1) { return; };
+
+        var m2 =  1000000000;
+        var F = (G * m1 * m2) / Math.pow(r, 2)
+
+        fx += (other_star.x - star.x) * F;
+        fy += (other_star.y - star.y) * F;
+      });
+
+      star.vx = (2 * fx) / m1;
+      star.vy = (2 * fy) / m1;
     }
 
     function updatePosition(star) {
@@ -70,7 +90,7 @@
     tick(universe);
     setInterval(function() {
       tick(universe);
-    }, 400);
+    }, 40);
   </script>
 </body>
 </html>
