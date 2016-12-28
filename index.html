@@ -1,0 +1,76 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HavyGravi</title>
+</head>
+
+<body>
+  <canvas id="canvas" height="500px" width="500px"></canvas>
+
+  <script>
+    var canvas = document.getElementById('canvas');
+    var canvasWidth  = canvas.width;
+    var canvasHeight = canvas.height;
+    var ctx = canvas.getContext('2d');
+    var imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+    var universe = [];
+    for (var i = 0; i < 100; ++i) {
+      universe.push({
+        x: Math.floor((Math.random() * canvasWidth) + 1),
+        y: Math.floor((Math.random() * canvasHeight) + 1),
+        vx: 1,
+        vy: 1
+      });
+    }  
+
+    function setPixel(x, y, enabled) {
+      var index = (y * canvasWidth + x) * 4;
+      if(enabled) {
+        imageData.data[index]   = 0;  // red
+        imageData.data[++index] = 0;    // green
+        imageData.data[++index] = 0;    // blue
+        imageData.data[++index] = 255;  // alpha
+      } else {
+        imageData.data[index]   = 240;  // red
+        imageData.data[++index] = 240;  // green
+        imageData.data[++index] = 240;  // blue
+        imageData.data[++index] = 255;  // alpha
+      }
+    }
+
+    function distance(star, other_star) {
+      var dx = star.x - other_star.x;
+      var dy = star.y - other_star.y;
+      return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    }
+
+    function updateVelocity(star, universe) {
+      //console.log((Math.random() - 0.5) * 2);
+      star.vx = (Math.random() - 0.5) * 2;
+      star.vy = (Math.random() - 0.5) * 2;
+      star.vx *= 50;
+      star.vy *= 50;
+    }
+
+    function updatePosition(star) {
+      star.x += star.vx;
+      star.y += star.vy;
+    }
+
+    function tick(universe) {
+      universe.forEach(function(star) { setPixel(star.x, star.y, false); });
+      universe.forEach(function(star) { updateVelocity(star, universe);  });
+      universe.forEach(function(star) { updatePosition(star);            });
+      universe.forEach(function(star) { setPixel(star.x, star.y, true);  });
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    tick(universe);
+    setInterval(function() {
+      tick(universe);
+    }, 400);
+  </script>
+</body>
+</html>
